@@ -1,0 +1,53 @@
+.container {
+    max-width: 500px;
+    margin: auto;
+    padding: 1rem;
+    color: #eee;
+    background: #121212;
+    font-family: system-ui;
+  }
+  
+  .device-card {
+    background: #1e1e1e;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 8px #000;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  button {
+    background: #333;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background: #555;
+  }
+  
+  .slider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  input[type='range'] {
+    flex: 1;
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: #999;
+  }
+  
