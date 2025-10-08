@@ -1,17 +1,28 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AudioDevice } from '../../core/interfaces/AudioInterface';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WinAudioService {
-  private baseUrl = 'http://10.11.21.134:5000'  
-  // private baseUrl ='https://10.11.21.134:5000';
+ private baseUrl: string;
 
 
-  constructor(private http: HttpClient ) { }
+  constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {
+    //valor por defecto
+    this.baseUrl = 'http://localhost:5000';
+    //Ejecutamos solo si es en navegador
+    if(isPlatformBrowser(this.platformId)){
+      const hostname = window.location.hostname;
+        this.baseUrl = hostname  === 'localhost' || hostname === '127.0.0.1' 
+          ? 'http://localhost:5000' : `http://${hostname}:5000`;
+    }
+    
+    
+   }
 
   getDevices(): Observable<AudioDevice[]>{
     return this.http.get<AudioDevice[]>(`${this.baseUrl}/devices`)
@@ -25,11 +36,11 @@ export class WinAudioService {
     return this.http.post(`${this.baseUrl}/device/${id}/mute`, { mute });
   }
 
-  setSessionVolume(deviceId: number, sessionId: number, volume: number) {
+  setSessionVolume(deviceId: number, sessionId: string, volume: number) {
     return this.http.post(`${this.baseUrl}/session/${deviceId}/${sessionId}/volume`, { volume });
   }
 
-  toggleSessionMute(deviceId: number, sessionId: number, mute: boolean) {
+  toggleSessionMute(deviceId: number, sessionId: string, mute: boolean) {
     return this.http.post(`${this.baseUrl}/session/${deviceId}/${sessionId}/mute`, { mute });
   }
 

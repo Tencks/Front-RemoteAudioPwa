@@ -3,6 +3,7 @@ export interface AudioSession {
     name: string;
     volume: number;
     mute: boolean;
+    deviceID: number;
   }
   
   export interface AudioDevice {
