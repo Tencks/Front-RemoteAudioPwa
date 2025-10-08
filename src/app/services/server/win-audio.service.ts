@@ -37,11 +37,33 @@ export class WinAudioService {
   }
 
   setSessionVolume(deviceId: number, sessionId: string, volume: number) {
-    return this.http.post(`${this.baseUrl}/session/${deviceId}/${sessionId}/volume`, { volume });
+    //Extraemos el sessionID
+    const sessinIndex = sessionId.split('-')[1] || sessionId; //Fallback sui no hay '-' 
+    console.log(sessinIndex);
+    const url = `${this.baseUrl}/session/${deviceId}/${sessinIndex}/volume`;
+     // Debug: Mostrar URL construida
+    // console.log('=== DEBUG SERVICIO ===');
+    // console.log('Session ID original:', sessionId);
+    // console.log('Session ID extraído:', sessinIndex);
+    // console.log('URL completa:', url);
+    // console.log('Volumen a enviar:', volume);
+    // console.log('======================');
+   return this.http.post(url, { volume });
   }
 
   toggleSessionMute(deviceId: number, sessionId: string, mute: boolean) {
-    return this.http.post(`${this.baseUrl}/session/${deviceId}/${sessionId}/mute`, { mute });
+    //Extraemos el sessionID
+    const sessionIndex = sessionId.split('-')[1] || sessionId; //Fallback si no hay '-' 
+    const url = `${this.baseUrl}/session/${deviceId}/${sessionIndex}/mute`;
+     // Debug: Mostrar URL construida
+    // console.log('=== DEBUG TOGGLE MUTE SERVICIO ===');
+    // console.log('Session ID original:', sessionId);
+    // console.log('Session ID extraído:', sessionIndex);
+    // console.log('URL completa:', url);
+    // console.log('Mute:', mute);
+    // console.log('==================================');
+    
+    return this.http.post(url, { mute });
   }
 
 }

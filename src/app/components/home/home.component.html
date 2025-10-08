@@ -13,7 +13,7 @@
         <div class="flex items-center justify-between mb-3">
           <div class="text-left">
             <strong class="block text-lg">{{ device.name }}</strong>
-            <small class="text-gray-400">{{ device.id }}</small>
+            <!-- <small class="text-gray-400">{{ device.id }}</small> -->
           </div>
           <button
             (click)="toggleMute(device.id, !device.mute); device.mute = !device.mute"
@@ -58,16 +58,21 @@
                   <strong class="block text-lg">{{ session.name }}</strong>
                   <small class="text-gray-400">{{ session.id }}</small>
                 </div>
-                <!-- <button
-                  (click)="toggleMute(session.id, !session.mute)"
+                 <button
+                  
+                   (click)="toggleSessionMute(device.id, getSessionIndex(session.id), !session.mute)"
                   class="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200"
                   [ngClass]="{
                     'bg-red-600 hover:bg-red-500': !session.mute,
                     'bg-green-600 hover:bg-green-500': session.mute
                   }"
                 >
-                  {{ session.mute ? '🔇 Desmutear' : '🔈 Mutear' }}
-                </button> -->
+                  @if (session.mute) {
+                    <span>🔇 Desmutear</span>
+                  } @else {
+                    <span>🔈 Mutear</span>
+                  }
+                </button>
               </div>
               <div class="slider flex items-center justify-between">
                  <input
@@ -75,8 +80,8 @@
                    min="0"
                    max="100"
                    class="w-3/4 accent-blue-500"
-                   [(ngModel)]="session.volume"
-                   (ngModelChange)="onSessionVolumeChange(session.deviceID, session.id, $event)"
+                   [value]="session.volume * 100"
+                   (input)="handleSessionVolumeInput(device.id, session.id, $event)"
                  />
                  <span class="ml-2 w-12 text-right">{{ (session.volume * 100) | number:'1.0-0' }}%</span>
                </div>
