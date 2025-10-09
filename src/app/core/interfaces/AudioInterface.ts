@@ -14,3 +14,10 @@ export interface AudioSession {
     mute: boolean;
     sessions: AudioSession[];
   }
+
+  export interface DeviceFilter {
+  id: string;
+  name: string;
+  type: number;
+  enabled: boolean;
+}

@@ -1,0 +1,113 @@
+
+
+<div class="config-container">
+  <header class="config-header">
+    <h2>Configuración de Dispositivos</h2>
+    <p class="config-subtitle">
+      Selecciona qué dispositivos quieres ver en la aplicación
+      <span class="device-count">({{ enabledDevicesCount }} de {{ totalDevicesCount }} habilitados)</span>
+    </p>
+  </header>
+
+  <div class="config-controls">
+    <!-- Búsqueda -->
+    <!-- <div class="search-container">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar dispositivos..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="filterDevices()"
+        style="width: 200px; height: 30px; font-size: 14px;"
+      />
+    </div> -->
+
+    <!-- Filtro por tipo -->
+    <div class="filter-tabs">
+      <button 
+        class="filter-tab" 
+        [class.active]="filterType === -1"
+        (click)="filterType = -1; filterDevices()"
+      >
+        Todos
+      </button>
+      <button 
+        class="filter-tab" 
+        [class.active]="filterType ===  0 "
+        (click)="filterType =  0 ; filterDevices()"
+      >
+        Salida
+      </button>
+      <button 
+        class="filter-tab" 
+        [class.active]="filterType ===  1 "
+        (click)="filterType =  1 ; filterDevices()"
+      >
+        Entrada
+      </button>
+    </div>
+
+    <!-- Botón reset -->
+    <button class="reset-button" (click)="resetFilters()">
+      <svg class="reset-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+      </svg>
+      Habilitar todos
+    </button>
+  </div>
+
+  <!-- Lista de dispositivos -->
+  <div class="devices-list">
+    <div 
+      class="device-item" 
+      *ngFor="let device of filteredDevices"
+      [class.disabled]="!device.enabled"
+    >
+      <div class="device-info">
+        <div class="device-icon" [class.input]="device.type ===  1 " [class.output]="device.type ===  0 ">
+          <svg *ngIf="device.type ===  1 " viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+          </svg>
+          <svg *ngIf="device.type ===  0 " viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+        </div>
+        <div class="device-details">
+          <h4 class="device-name">{{ device.name }}</h4>
+          <span class="device-type">{{ device.type ===  1 ? 'Entrada' : 'Salida' }}</span>
+        </div>
+      </div>
+      
+      <button 
+        class="toggle-button" 
+        [class.enabled]="device.enabled"
+        [class.disabled]="!device.enabled"
+        (click)="toggleDevice(device.id)"
+      >
+        <span class="toggle-slider"></span>
+      </button>
+    </div>
+
+    <!-- Mensaje si no hay resultados -->
+    <div class="no-results" *ngIf="filteredDevices.length === 0">
+      <svg class="no-results-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M9.5 3A6.5 6.5 0 0116 9.5c0 1.61-.59 3.09-1.57 4.23l1.41 1.41C17.39 13.3 18 11.66 18 10c0-4.42-3.58-8-8-8s-8 3.58-8 8h2c0-3.31 2.69-6 6-6zm8.5 14.5l-6-6-6 6-1.5-1.5L12 10l6 6 1.5-1.5z"/>
+      </svg>
+      <p>No se encontraron dispositivos</p>
+      <button class="clear-search" (click)="searchTerm = ''; filterDevices()">
+        Limpiar búsqueda
+      </button>
+    </div>
+  </div>
+
+  <!-- Información adicional -->
+  <div class="config-info">
+    <p class="info-text">
+      💡 Los cambios se guardan automáticamente en tu navegador
+    </p>
+  </div>
+</div>
+

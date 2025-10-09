@@ -1,105 +1,60 @@
 
 
-<div class="container mx-auto p-4 text-center" *ngIf="!loading; else loadingTpl">
-  <h2 class="text-2xl font-bold mb-4">🎧 Control de Audio del Sistema</h2>
+<div class="container mx-auto p-4 text-center" >
+  <h2 class="text-2xl font-bold mb-4">🎧 Pista de Audio 🎧</h2>
 
-  <div *ngIf="devices.length > 0; else noDevicesTpl" class="grid gap-4">
+  <!-- Reproductor de música -->
+  <div class="music-player bg-gray-800 text-white rounded-lg p-4 shadow-md">
+    <!-- Carátula -->
     <div
-      *ngFor="let device of devices"
-      class="device-card bg-gray-800 text-white rounded-2xl p-4 shadow-lg"
+      class="album-cover mb-4 relative inline-block cursor-pointer"
+      (mouseenter)="showUwu = true; hideUwuSoon()"
+      (mouseleave)="showUwu = false"
     >
-      <!-- FUENTES DE SONIDOS -->
-      <div class="mb-4">
-        <div class="flex items-center justify-between mb-3">
-          <div class="text-left">
-            <strong class="block text-lg">{{ device.name }}</strong>
-            <!-- <small class="text-gray-400">{{ device.id }}</small> -->
-          </div>
-          <button
-            (click)="toggleMute(device.id, !device.mute); device.mute = !device.mute"
-            class="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200"
-            [ngClass]="{
-              'bg-red-600 hover:bg-red-500': !device.mute,
-              'bg-green-600 hover:bg-green-500': device.mute
-            }"
-          >
-            @if (device.mute) {
-              <span>🔇 Desmutear</span>
-            } @else {
-              <span>🔈 Mutear</span>
-            }
-          </button>
-          
-        </div>
+      <img
+        src="icons/icon-96-96.png"
+        alt="Carátula del álbum"
+        class="w-32 h-32 mx-auto rounded-lg shadow-lg"
+      />
+      <span
+        *ngIf="showUwu"
+        class="absolute inset-0 flex items-center justify-center text-2xl font-bold text-pink-400"
+      >
+        UwU
+      </span>
+    </div>
+    <!-- Información de la canción -->
+    <div class="song-info mb-4">
+      <h3 class="text-lg font-semibold">Título de la canción</h3>
+      <p class="text-sm text-gray-400">Artista</p>
+    </div>
 
-        <div class="slider flex items-center justify-between">
-          <input
-            type="range"
-            min="0"
-            max="100"
-            class="w-3/4 accent-blue-500"
-            [value]="device.volume * 100"
-            (input)="handleVolumeInput(device.id, $event)"
-          />
-          <span class="ml-2 w-12 text-right">{{ (device.volume * 100) | number:'1.0-0' }}%</span>
-        </div>
-      </div>
+    <!-- Controles -->
+    <div class="controls flex justify-center items-center space-x-4">
+      <!-- Botón Anterior -->
+      <button
+        class="control-btn bg-gray-700 hover:bg-gray-600 rounded-full p-3"
+        (click)="previousTrack()"
+      >
+        ⏮️
+      </button>
 
-      <!-- SESIONES DE SONIDO -->
-      <div class="mt-6 border-t border-gray-700 pt-4">
-        <h3 class="text-left text-lg font-semibold mb-3">Aplicaciones</h3>
-        
-        <div class="space-y-4">
-          @for (session of device.sessions; track session.id) {
-            @if (session.name !=='') {
-              <div class="bg-gray-900 rounded-lg p-3">
-              <div class="flex items-center justify-between mb-3">
-                <div class="text-left">
-                  <strong class="block text-lg">{{ session.name }}</strong>
-                  <small class="text-gray-400">{{ session.id }}</small>
-                </div>
-                 <button
-                  
-                   (click)="toggleSessionMute(device.id, getSessionIndex(session.id), !session.mute)"
-                  class="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200"
-                  [ngClass]="{
-                    'bg-red-600 hover:bg-red-500': !session.mute,
-                    'bg-green-600 hover:bg-green-500': session.mute
-                  }"
-                >
-                  @if (session.mute) {
-                    <span>🔇 Desmutear</span>
-                  } @else {
-                    <span>🔈 Mutear</span>
-                  }
-                </button>
-              </div>
-              <div class="slider flex items-center justify-between">
-                 <input
-                   type="range"
-                   min="0"
-                   max="100"
-                   class="w-3/4 accent-blue-500"
-                   [value]="session.volume * 100"
-                   (input)="handleSessionVolumeInput(device.id, session.id, $event)"
-                 />
-                 <span class="ml-2 w-12 text-right">{{ (session.volume * 100) | number:'1.0-0' }}%</span>
-               </div>
-            </div>
-            }
-          }
-        </div>
-      </div>
+      <!-- Botón Play/Pause -->
+      <button
+        class="control-btn bg-green-600 hover:bg-green-500 rounded-full p-3"
+        (click)="togglePlayPause()"
+      >
+        ▶️
+      </button>
+
+      <!-- Botón Siguiente -->
+      <button
+        class="control-btn bg-gray-700 hover:bg-gray-600 rounded-full p-3"
+        (click)="nextTrack()"
+      >
+        ⏭️
+      </button>
     </div>
   </div>
 </div>
 
-<ng-template #loadingTpl>
-  <div class="text-center text-gray-400 mt-10 animate-pulse">
-    🔄 Cargando dispositivos de audio...
-  </div>
-</ng-template>
-
-<ng-template #noDevicesTpl>
-  <div class="text-gray-400 mt-8">⚠️ No se encontraron dispositivos de audio.</div>
-</ng-template>
