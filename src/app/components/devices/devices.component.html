@@ -3,7 +3,7 @@
 
 
 <div class="container mx-auto p-4 text-center" *ngIf="!loading; else loadingTpl">
-  <h2 class="text-2xl font-bold mb-4">🎧 Control de Audio Saliente</h2>
+  <h2 class="text-2xl font-bold mb-4">🎧 Control de Audio - Salida</h2>
 
   <div *ngIf="devices.length; else noDevicesTpl" class="grid gap-4">
     <div
@@ -16,20 +16,20 @@
           <div class="text-left">
             <strong class="block text-lg">{{ device.name }}</strong>
             <!-- <small class="text-gray-400">{{ device.id }}</small> -->
-            <small class="text-gray-400">{{ device.type }}</small>
+            <!-- <small class="text-gray-400">{{ device.type }}</small> -->
           </div>
           <button
             (click)="toggleMute(device.id, !device.mute); device.mute = !device.mute"
-            class="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200"
+            class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
             [ngClass]="{
               'bg-red-600 hover:bg-red-500': !device.mute,
               'bg-green-600 hover:bg-green-500': device.mute
             }"
           >
             @if (device.mute) {
-              <span>🔇 Desmutear</span>
+              <span>🔇</span>
             } @else {
-              <span>🔈 Mutear</span>
+              <span>🔈</span>
             }
           </button>
           
@@ -40,7 +40,7 @@
             type="range"
             min="0"
             max="100"
-            class="w-3/4 accent-blue-500"
+            class="w-full"
             [value]="device.volume * 100"
             (input)="handleVolumeInput(device.id, $event)"
           />
@@ -59,20 +59,20 @@
               <div class="flex items-center justify-between mb-3">
                 <div class="text-left">
                   <strong class="block text-lg">{{ session.name }}</strong>
-                  <small class="text-gray-400">{{ session.id }}</small>
+                  <!-- <small class="text-gray-400">{{ session.id }}</small> -->
                 </div>
                 <button
                   (click)="toggleSessionMute(device.id, session.id, !session.mute); $event.stopPropagation()"
-                  class="px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200"
+                  class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
                   [ngClass]="{
                     'bg-red-600 hover:bg-red-500': !session.mute,
                     'bg-green-600 hover:bg-green-500': session.mute
                   }"
                 >
                   @if (session.mute) {
-                    <span>🔇 Desmutear</span>
+                    <span>🔇</span>
                   } @else {
-                    <span>🔈 Mutear</span>
+                    <span>🔈</span>
                   }
                 </button>
               </div>
@@ -81,7 +81,7 @@
                    type="range"
                    min="0"
                    max="100"
-                   class="w-3/4 accent-blue-500"
+                   class="w-full"
                    [value]="session.volume * 100"
                    (input)="handleSessionVolumeInput(device.id, session.id, $event)"
                  />

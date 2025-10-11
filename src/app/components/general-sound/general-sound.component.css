@@ -1,0 +1,149 @@
+/* Contenedor principal */
+.music-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  color: #ffffff;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Título */
+.music-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* Reproductor de música */
+.music-player {
+  background: #1f2937;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Carátula del álbum */
+.album-cover {
+  margin-bottom: 20px;
+}
+
+.album-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 10px;
+  border: 4px solid #4b5563;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Información de la canción */
+.song-info {
+  margin-bottom: 20px;
+}
+
+.song-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.song-artist {
+  font-size: 1rem;
+  color: #9ca3af;
+}
+
+/* Barra de progreso */
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.current-time,
+.total-time {
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #4b5563;
+  border-radius: 3px;
+  outline: none;
+}
+
+.progress-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #10b981;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #16a34a;
+}
+
+.progress-bar::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #10b981;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #16a34a;
+}
+
+/* Controles */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.control-btn {
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 50%;
+  background: #4b5563;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+
+.control-icon {
+  width: 35px;
+  height: 35px;
+  display: block;
+  margin: auto;
+}
+
+/* Botón Play/Pause */
+.play-pause {
+  background: #10b981;
+}
+
+.play-pause:active {
+  background: #16a34a;
+}
+
+/* Botón Anterior y Siguiente */
+.previous,
+.next {
+  background: #4b5563;
+}
+
+.previous:active,
+.next:active {
+  background: #6b7280;
+}

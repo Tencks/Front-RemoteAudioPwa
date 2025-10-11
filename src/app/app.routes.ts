@@ -3,10 +3,16 @@ import { HomeComponent } from './components/home/home.component';
 import { DevicesComponent } from './components/devices/devices.component';
 import { ConfigComponent } from './components/config/config.component';
 import { DevicesInComponent } from './components/devices/devices-in/devices-in.component';
+import { GeneralSoundComponent } from './components/general-sound/general-sound.component';
 
 export const routes: Routes = [
     {
         path: '',
+        redirectTo:'home',
+        pathMatch:'full'
+    },
+    {
+        path: 'home',
         component: HomeComponent
     },
     {
@@ -20,6 +26,10 @@ export const routes: Routes = [
     {
         path:'config',
         component: ConfigComponent
+    },
+    {
+        path:'music',
+        component: GeneralSoundComponent
     },
     {
         path: '**',

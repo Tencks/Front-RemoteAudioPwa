@@ -66,4 +66,14 @@ export class WinAudioService {
     return this.http.post(url, { mute });
   }
 
+  MusicPlayPause() {
+    return this.http.post(`${this.baseUrl}/media/playpause`, {});
+  }
+  MusicPrevious() {
+    return this.http.post(`${this.baseUrl}/media/prev`, {});
+  }
+  MusicNext() {
+    return this.http.post(`${this.baseUrl}/media/next`, {});
+  }
+
 }

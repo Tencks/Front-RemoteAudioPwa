@@ -67,31 +67,60 @@ input[type='range'] {
   height: 8px;
   -webkit-appearance: none;
   appearance: none;
-  background: #333;
+  background: #8b5cf6; /* Fondo violeta */
   border-radius: 4px;
   outline: none;
+  transition: background 0.3s ease;
 }
 
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px;
-  height: 18px;
-  background: #3498db;
+  width: 20px;
+  height: 20px;
+  background: #facc15; /* Amarillo */
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid #2980b9;
+  border: 2px solid #ffd60a; /* Amarillo más claro */
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+input[type='range']::-webkit-slider-thumb:hover {
+  background: #ffd60a; /* Amarillo más claro al pasar el mouse */
+  transform: scale(1.1); /* Efecto de agrandamiento */
 }
 
 input[type='range']::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  background: #3498db;
+  width: 20px;
+  height: 20px;
+  background: #facc15; /* Amarillo */
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid #2980b9;
+  border: 2px solid #ffd60a; /* Amarillo más claro */
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+input[type='range']::-moz-range-thumb:hover {
+  background: #ffd60a; /* Amarillo más claro al pasar el mouse */
+  transform: scale(1.1); /* Efecto de agrandamiento */
+}
+
+input[type='range']::-ms-thumb {
+  width: 20px;
+  height: 20px;
+  background: #facc15; /* Amarillo */
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #ffd60a; /* Amarillo más claro */
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+input[type='range']::-ms-thumb:hover {
+  background: #ffd60a; /* Amarillo más claro al pasar el mouse */
+  transform: scale(1.1); /* Efecto de agrandamiento */
 }
 
 .loading {
