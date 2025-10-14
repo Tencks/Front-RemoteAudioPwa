@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AudioDevice } from '../../core/interfaces/AudioInterface';
+import { AudioDevice, MediaInfo } from '../../core/interfaces/AudioInterface';
 import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
@@ -74,6 +74,10 @@ export class WinAudioService {
   }
   MusicNext() {
     return this.http.post(`${this.baseUrl}/media/next`, {});
+  }
+
+  MusicCurrent():Observable<MediaInfo[]> {
+    return this.http.get<MediaInfo[]>(`${this.baseUrl}/media/current`);
   }
 
 }

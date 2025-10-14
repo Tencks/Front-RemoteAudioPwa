@@ -21,3 +21,14 @@ export interface AudioSession {
   type: number;
   enabled: boolean;
 }
+
+export interface MediaInfo {
+ 
+    title: string;
+    artist: string;
+    album: string;
+    duration: number;
+    position: number;
+    isPlaying: boolean;
+  
+}
