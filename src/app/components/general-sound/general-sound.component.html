@@ -1,4 +1,3 @@
-@if (currentSong) {
 <div class="music-container">
   <h2 class="music-title">🎧 Reproductor de Música 🎧</h2>
 
@@ -15,21 +14,22 @@
 
     <!-- Información de la canción -->
     <div class="song-info">
-      <h3 class="song-title">{{currentSong[0].title || 'Título de la canción'}}</h3>
-      <p class="song-artist">{{currentSong[0].artist || 'Unknow'}}</p>
+      <h3 class="song-title">{{currentSong[0]?.title || 'Título de la canción'}}</h3>
+      <p class="song-artist">{{currentSong[0]?.artist || 'Unknow'}}</p>
     </div>
 
     <!-- Barra de progreso -->
     <div class="progress-container">
-      <span class="current-time">{{currentSong[0].position || '0:00'}}</span>
+      <span class="current-time">{{ formatTime(currentSong[0]?.position_seconds) || '0:00' }}</span>
       <input
         type="range"
         class="progress-bar"
         min="0"
-        max="100"
-        value="12"
+        [max]="currentSong[0]?.duration_seconds || 0"
+        [value]="currentSong[0]?.position_seconds || 0"
+        (input)="seekTo($event)"
       />
-      <span class="total-time">{{currentSong[0].duration || '1:00'}}</span>
+      <span class="total-time">{{ formatTime(currentSong[0]?.duration_seconds) || '0:00' }}</span>
     </div>
 
     <!-- Controles -->
@@ -51,4 +51,3 @@
     </div>
   </div>
 </div>
-}

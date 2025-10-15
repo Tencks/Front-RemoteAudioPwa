@@ -24,11 +24,11 @@ export interface AudioSession {
 
 export interface MediaInfo {
  
-    title: string;
-    artist: string;
-    album: string;
-    duration: number;
-    position: number;
-    isPlaying: boolean;
+    title?: string;
+    artist?: string;
+    album?: string;
+    duration_seconds?: number;
+    position_seconds?: number;
+    isPlaying?: boolean;
   
 }

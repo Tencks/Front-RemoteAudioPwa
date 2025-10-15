@@ -19,6 +19,7 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
   private hideTimeout: any; // Variable para manejar el timeout
   currentSong: MediaInfo[] = [];
   private mediaUpdateSubscription: Subscription | undefined;
+  progressInterval: any; // Para almacenar el ID del intervalo de progreso
 
   constructor(private audioService: WinAudioService) { }
   ngOnInit(): void {
@@ -31,6 +32,9 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if(this.mediaUpdateSubscription){
       this.mediaUpdateSubscription.unsubscribe();
+    }
+    if(this.progressInterval){
+      clearInterval(this.progressInterval);
     }
   }
 
@@ -97,33 +101,68 @@ isPlaying: boolean = false;
     this.audioService.MusicCurrent().subscribe({
       next: (response: any) => {
         // console.log('Respuesta de MusicCurrent:', response);
-        this.currentSong = [response.mediaInfo];
+        this.currentSong = [response.mediaInfo];  // Mantengo tu lógica original
+        const newMediaInfo = [response.mediaInfo];  // Mantengo tu lógica original
+        if (this.currentSong.length || this.currentSong[0].title !== newMediaInfo[0].title) {  // Mantengo tu lógica original
+          this.currentSong = newMediaInfo;  // Mantengo tu lógica original
+        }
         // console.log('CurrentSong[0].mInfo:', this.currentSong[0]);
-        this.isPlaying = response.isPlaying === 'playing';
+        this.isPlaying = response.isPlaying === 'playing';  // Mantengo tu lógica original
+        // console.log('currentSong[0].position_sec:', this.currentSong[0].position_seconds);
+        // console.log('currentSong[0].duration_sec:', this.currentSong[0].duration_seconds);
+
+        // Limpiamos el intervalo ANTES de cualquier operación (mejora la seguridad)
+        if (this.progressInterval) {
+          clearInterval(this.progressInterval);
+          this.progressInterval = null;  // Aseguramos que el intervalo se marque como limpio
+        }
+
+        // Actualizamos la progressBar SOLO si hay una canción válida
+        if (this.isPlaying && this.currentSong[0]?.position_seconds != null && this.currentSong[0]?.duration_seconds != null) {
+          // Iniciamos el intervalo con comprobaciones adicionales
+          this.progressInterval = setInterval(() => {
+            // Validamos que la canción siga existiendo y los valores sean válidos
+            if (this.currentSong[0] && this.currentSong[0].position_seconds != null && this.currentSong[0].duration_seconds != null && this.currentSong[0].position_seconds < this.currentSong[0].duration_seconds) {
+              this.currentSong[0].position_seconds += 1;  // Incrementamos la posición
+            } else {
+              // Si la canción termina o no es válida, limpiamos el intervalo
+              clearInterval(this.progressInterval);
+              this.progressInterval = null;
+              this.isPlaying = false;  // Marcamos como no reproduciendo
+            }
+          }, 1000);
+        } else {
+          // Si no está reproduciendo o no hay canción, aseguramos el intervalo está limpio
+          clearInterval(this.progressInterval);
+          this.progressInterval = null;
+        }
       },
       error: (error) => {
         console.error('Error al obtener la canción actual:', error);
+        // En caso de error, limpiamos el intervalo para evitar fugas
+        clearInterval(this.progressInterval);
+        this.progressInterval = null;
       }
     });
   }
 
-  // formatTime(seconds: number | undefined): string {
-  //   if (seconds === undefined || isNaN(seconds)) {
-  //     return '0:00';
-  //   }
-  //   const minutes = Math.floor(seconds / 60);
-  //   const remainingSeconds = Math.floor(seconds % 60);
-  //   return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-  // }
+  formatTime(seconds: number | undefined): string {
+    if (seconds === undefined || isNaN(seconds)) {
+      return '0:00';
+    }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  }
 
-  // seekTo(event: Event): void {
-  //   const target = event.target as HTMLInputElement;
-  //   const seekPosition = parseFloat(target.value);
-  //   // Aquí podrías enviar la nueva posición al backend si tu API lo soporta
-  //   // Por ahora, solo actualizamos la posición localmente para la visualización
-  //   if (this.currentSong.length > 0) {
-  //     this.currentSong[0].position = seekPosition;
-  //   }
-  // }
+  seekTo(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const seekPosition = parseFloat(target.value);
+    // Aquí podrías enviar la nueva posición al backend si tu API lo soporta
+    // Por ahora, solo actualizamos la posición localmente para la visualización
+    if (this.currentSong.length > 0) {
+      this.currentSong[0].position_seconds = seekPosition;
+    }
+  }
 
 }
