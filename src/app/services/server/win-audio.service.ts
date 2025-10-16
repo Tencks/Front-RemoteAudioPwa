@@ -13,12 +13,14 @@ export class WinAudioService {
 
   constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {
     //valor por defecto
-    this.baseUrl = 'http://localhost:5000';
+    // this.baseUrl = 'https://localhost:5000';
+    this.baseUrl = '/api';
     //Ejecutamos solo si es en navegador
     if(isPlatformBrowser(this.platformId)){
       const hostname = window.location.hostname;
-        this.baseUrl = hostname  === 'localhost' || hostname === '127.0.0.1' 
-          ? 'http://localhost:5000' : `http://${hostname}:5000`;
+        // this.baseUrl = hostname  === 'localhost' || hostname === '127.0.0.1' 
+        //   ? 'https://localhost:5000' : `https//${hostname}:5000`;
+        this.baseUrl = '/api';
     }
     
     

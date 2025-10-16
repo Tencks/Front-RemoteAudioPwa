@@ -68,7 +68,11 @@
               "buildTarget": "RemoteAppPwa:build:production"
             },
             "development": {
-              "buildTarget": "RemoteAppPwa:build:development"
+              "buildTarget": "RemoteAppPwa:build:development",
+              "ssl": true,
+              "sslKey": "localhost+3-key.pem",
+              "sslCert": "localhost+3.pem",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
