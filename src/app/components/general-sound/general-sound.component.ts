@@ -1,9 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { WinAudioService } from '../../services/server/win-audio.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MediaInfo } from '../../core/interfaces/AudioInterface';
-import { interval, Subscription } from 'rxjs';
+import {  Subscription } from 'rxjs';
+import { WinAudioWSService } from '../../services/server/win-audio-ws.service';
 
 @Component({
   selector: 'app-general-sound',
@@ -21,13 +22,33 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
   private mediaUpdateSubscription: Subscription | undefined;
   progressInterval: any; // Para almacenar el ID del intervalo de progreso
 
-  constructor(private audioService: WinAudioService) { }
+  currentMediaInfo: any | null = null;
+  isConnected: boolean = false;
+  private mediaSubscription!: Subscription;
+  websocketUrl:string = '';
+
+  constructor(private audioService: WinAudioService, private mediaWebsocketService: WinAudioWSService, @Inject(PLATFORM_ID) private platformId: Object) { }
   ngOnInit(): void {
     this.CurrentSong();
-    // this.mediaUpdateSubscription = interval(1000).subscribe(() => {
-    //   this.CurrentSong();
-    // });
-  }
+
+    
+    if(isPlatformBrowser(this.platformId)){
+      const hostname = window.location.hostname;
+        this.websocketUrl = hostname  === 'localhost' || hostname === '127.0.0.1' 
+          ? 'wss://localhost:5000' : `wss://${hostname}:5000`;
+    } 
+    this.mediaWebsocketService.connect(this.websocketUrl);
+
+    this.mediaSubscription = this.mediaWebsocketService.mediaInfo$.subscribe(info => {
+      this.currentMediaInfo = info;
+      this.isConnected = true; // Si recibimos info, estamos conectados
+      console.log('Información de medios recibida:', info);
+      this.currentSong = [info];
+      console.log('websocket data: ' ,this.currentSong)
+    });
+   }
+
+  
 
   ngOnDestroy(): void {
     if(this.mediaUpdateSubscription){
@@ -36,6 +57,9 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
     if(this.progressInterval){
       clearInterval(this.progressInterval);
     }
+
+    this.mediaWebsocketService.disconnect();
+  
   }
 
 
