@@ -48,6 +48,24 @@
   font-size: 1.2rem;
   font-weight: bold;
   color: #F8F9FA; /* Texto claro */
+  white-space: nowrap;
+  overflow: hidden;
+  position:relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.song-title .marquee-text {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 15s linear infinite; /* ANIMACION LINEAL INFINITA */
+  padding-left: 100%;
+  animation-delay: 1s;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0);}
+  100% { transform: translateX(-100%);}
 }
 
 .song-artist {
@@ -133,7 +151,7 @@
 }
 
 .control-btn.play-pause {
-  background: rgba(250, 204, 21, 0.2); /* Fondo amarillo claro para el botón de play/pause */
+  /* background: rgba(250, 204, 21, 0.2); Fondo amarillo claro para el botón de play/pause */
   color: #facc15; /* Color de icono amarillo para el botón de play/pause */
 }
 

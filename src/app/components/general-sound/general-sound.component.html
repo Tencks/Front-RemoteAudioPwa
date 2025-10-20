@@ -14,7 +14,7 @@
 
     <!-- Información de la canción -->
     <div class="song-info">
-      <h3 class="song-title">{{currentSong[0]?.title || 'Título de la canción'}}</h3>
+      <h3 class="song-title"><span class="marquee-text"> {{currentSong[0]?.title || 'Unknow'}} </span></h3>
       <p class="song-artist">{{currentSong[0]?.artist || 'Unknow'}}</p>
     </div>
 
@@ -50,4 +50,17 @@
       </button>
     </div>
   </div>
+   <audio #mediaElement 
+  style="
+  display: none;
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;" 
+  controls
+  playinline
+  loop
+  src="assets/silent2.mp3"
+  preload="auto"
+  ></audio>
 </div>

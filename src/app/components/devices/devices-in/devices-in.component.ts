@@ -43,6 +43,10 @@ export class DevicesInComponent implements OnInit{
 
 
   refresh(){
+    if(!this.isBrowser){
+      this.loading = false;
+      return
+    }
     this.audioService.getDevices().subscribe({
       next: (data) => {
         this.devices = data;

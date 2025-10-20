@@ -1,10 +1,18 @@
-import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, NgZone, viewChild, ViewChild, ElementRef } from '@angular/core';
 import { WinAudioService } from '../../services/server/win-audio.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MediaInfo } from '../../core/interfaces/AudioInterface';
 import {  Subscription } from 'rxjs';
 import { WinAudioWSService } from '../../services/server/win-audio-ws.service';
+
+// Define una interfaz para la información de la canción que se usará en Media Session
+interface SongInfo {
+  title: string;
+  artist: string;
+  album: string;
+  artwork: MediaImage[];
+}
 
 @Component({
   selector: 'app-general-sound',
@@ -16,6 +24,8 @@ import { WinAudioWSService } from '../../services/server/win-audio-ws.service';
   styleUrl: './general-sound.component.css'
 })
 export class GeneralSoundComponent implements OnInit, OnDestroy {
+  @ViewChild('mediaElement') mediaElementRef!:ElementRef<HTMLAudioElement>;
+
   showUwu: boolean = false; // Estado para mostrar u ocultar "UwU"
   private hideTimeout: any; // Variable para manejar el timeout
   currentSong: MediaInfo[] = [];
@@ -26,27 +36,45 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
   isConnected: boolean = false;
   private mediaSubscription!: Subscription;
   websocketUrl:string = '';
+  private Logs: boolean = false;
 
-  constructor(private audioService: WinAudioService, private mediaWebsocketService: WinAudioWSService, @Inject(PLATFORM_ID) private platformId: Object) { }
+  constructor(
+    private audioService: WinAudioService,
+    private mediaWebsocketService: WinAudioWSService,
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private ngZone: NgZone// Inyecta NgZone
+    // private navigator: Navigator
+  ) { }
   ngOnInit(): void {
     this.CurrentSong();
 
-    
     if(isPlatformBrowser(this.platformId)){
       const hostname = window.location.hostname;
-        this.websocketUrl = hostname  === 'localhost' || hostname === '127.0.0.1' 
+        this.websocketUrl = hostname  === 'localhost' || hostname === '127.0.0.1'
           ? 'wss://localhost:5000' : `wss://${hostname}:5000`;
-    } 
-    this.mediaWebsocketService.connect(this.websocketUrl);
 
-    this.mediaSubscription = this.mediaWebsocketService.mediaInfo$.subscribe(info => {
-      this.currentMediaInfo = info;
-      this.isConnected = true; // Si recibimos info, estamos conectados
-      console.log('Información de medios recibida:', info);
-      this.currentSong = [info];
-      console.log('websocket data: ' ,this.currentSong)
-    });
-   }
+      // Mueve la conexión y suscripción del WebSocket fuera de la zona de Angular
+      this.ngZone.runOutsideAngular(() => {
+        this.mediaWebsocketService.connect(this.websocketUrl);
+
+        this.mediaSubscription = this.mediaWebsocketService.mediaInfo$.subscribe(info => {
+          // Puedes volver a la zona de Angular si necesitas actualizar la UI
+          this.ngZone.run(() => {
+            this.currentMediaInfo = info;
+            this.isConnected = true; // Si recibimos info, estamos conectados
+            this.currentSong = [info];
+            if(this.Logs === true){
+              console.log('Información de medios recibida:', info);
+              console.log('websocket data: ' ,this.currentSong)
+            }
+            this.updateMediaSessionMetadata(info);
+          });
+        });
+      });
+      this.setupMediaSessionHandlers();
+    }
+  }
+
 
   
 
@@ -62,16 +90,76 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
   
   }
 
+// Configura los manejadores de eventos para la Media Session API
+  private setupMediaSessionHandlers(): void {
+    if(isPlatformBrowser(this.platformId)){
+      if ('mediaSession' in navigator) {
+        console.log('Media Session API está disponible');
+        navigator.mediaSession.setActionHandler('play', () => {
+          this.ngZone.run(() => this.togglePlayPause());
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+          this.ngZone.run(() => this.togglePlayPause());
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+          this.ngZone.run(() => this.previousTrack());
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+          this.ngZone.run(() => this.nextTrack());
+        });
+        // Puedes añadir más manejadores si es necesario, como 'seekto', 'seekforward', 'seekbackward'
+      }
+    }
+  }
+
+  // Actualiza la metadata de la Media Session
+  private updateMediaSessionMetadata(mediaInfo: MediaInfo): void {
+    if(isPlatformBrowser(this.platformId)){
+      if ('mediaSession' in navigator && mediaInfo) {
+        console.log('Media Session API Update disponible');
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: mediaInfo.title,
+          artist: mediaInfo.artist,
+          album: mediaInfo.album,
+          artwork: [
+            { src: '/assets/loli.gif', sizes: '96x96', type: 'image/gif' },
+            { src: '/assets/loli.gif', sizes: '128x128', type: 'image/gif' },
+            { src: '/assets/loli.gif', sizes: '192x192', type: 'image/gif' },
+            { src: '/assets/loli.gif', sizes: '256x256', type: 'image/gif' },
+          ]
+        });
+      }
+    }
+  }
+
 
 isPlaying: boolean = false;
 
   togglePlayPause() {
     this.isPlaying = !this.isPlaying;
     console.log(this.isPlaying ? 'Reproduciendo música' : 'Música pausada');
+
+    if (this.mediaElementRef && this.mediaElementRef.nativeElement) {
+      if (this.isPlaying) {
+        this.mediaElementRef.nativeElement.play().catch(e => console.error('Error al reproducir el elemento de audio:', e));
+      } else {
+        this.mediaElementRef.nativeElement.pause();
+      }
+    }
+
     this.audioService.MusicPlayPause().subscribe({
       next: (response) => {
         console.log('Respuesta del servidor:', response);
         this.CurrentSong(); // Actualizar la información de la canción después de play/pause
+
+        if ('mediaSession' in navigator) {
+          if (this.isPlaying) {
+            navigator.mediaSession.playbackState = 'playing';
+          } else {
+            navigator.mediaSession.playbackState = 'paused';
+          }
+        }
+
       },
       error: (error) => {
         console.error('Error al reproducir/ pausar música:', error);
@@ -122,52 +210,23 @@ isPlaying: boolean = false;
   }
 
   CurrentSong() {
-    this.audioService.MusicCurrent().subscribe({
-      next: (response: any) => {
-        // console.log('Respuesta de MusicCurrent:', response);
-        this.currentSong = [response.mediaInfo];  // Mantengo tu lógica original
-        const newMediaInfo = [response.mediaInfo];  // Mantengo tu lógica original
-        if (this.currentSong.length || this.currentSong[0].title !== newMediaInfo[0].title) {  // Mantengo tu lógica original
-          this.currentSong = newMediaInfo;  // Mantengo tu lógica original
-        }
-        // console.log('CurrentSong[0].mInfo:', this.currentSong[0]);
-        this.isPlaying = response.isPlaying === 'playing';  // Mantengo tu lógica original
-        // console.log('currentSong[0].position_sec:', this.currentSong[0].position_seconds);
-        // console.log('currentSong[0].duration_sec:', this.currentSong[0].duration_seconds);
+    // this.audioService.MusicCurrent().subscribe({
+    //   next: (response: any) => {
+    //     // console.log('Respuesta de MusicCurrent:', response);
+    //     this.currentSong = [response.mediaInfo];  // Mantengo tu lógica original
+    //     const newMediaInfo = [response.mediaInfo];  // Mantengo tu lógica original
+    //     if (this.currentSong.length || this.currentSong[0].title !== newMediaInfo[0].title) {  // Mantengo tu lógica original
+    //       this.currentSong = newMediaInfo;  // Mantengo tu lógica original
 
-        // Limpiamos el intervalo ANTES de cualquier operación (mejora la seguridad)
-        if (this.progressInterval) {
-          clearInterval(this.progressInterval);
-          this.progressInterval = null;  // Aseguramos que el intervalo se marque como limpio
-        }
-
-        // Actualizamos la progressBar SOLO si hay una canción válida
-        if (this.isPlaying && this.currentSong[0]?.position_seconds != null && this.currentSong[0]?.duration_seconds != null) {
-          // Iniciamos el intervalo con comprobaciones adicionales
-          this.progressInterval = setInterval(() => {
-            // Validamos que la canción siga existiendo y los valores sean válidos
-            if (this.currentSong[0] && this.currentSong[0].position_seconds != null && this.currentSong[0].duration_seconds != null && this.currentSong[0].position_seconds < this.currentSong[0].duration_seconds) {
-              this.currentSong[0].position_seconds += 1;  // Incrementamos la posición
-            } else {
-              // Si la canción termina o no es válida, limpiamos el intervalo
-              clearInterval(this.progressInterval);
-              this.progressInterval = null;
-              this.isPlaying = false;  // Marcamos como no reproduciendo
-            }
-          }, 1000);
-        } else {
-          // Si no está reproduciendo o no hay canción, aseguramos el intervalo está limpio
-          clearInterval(this.progressInterval);
-          this.progressInterval = null;
-        }
-      },
-      error: (error) => {
-        console.error('Error al obtener la canción actual:', error);
-        // En caso de error, limpiamos el intervalo para evitar fugas
-        clearInterval(this.progressInterval);
-        this.progressInterval = null;
-      }
-    });
+    //     }
+    //   },
+    //   error: (error) => {
+    //     console.error('Error al obtener la canción actual:', error);
+    //     // En caso de error, limpiamos el intervalo para evitar fugas
+    //     clearInterval(this.progressInterval);
+    //     this.progressInterval = null;
+    //   }
+    // });
   }
 
   formatTime(seconds: number | undefined): string {

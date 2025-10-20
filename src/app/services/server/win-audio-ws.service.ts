@@ -8,6 +8,7 @@ export class WinAudioWSService {
   private socket!: WebSocket;
   private mediaInfoSubject = new Subject<any>();
   public mediaInfo$ = this.mediaInfoSubject.asObservable();
+  private Logs: boolean = false;
 
   constructor() { }
 
@@ -20,7 +21,9 @@ export class WinAudioWSService {
     this.socket = new WebSocket(url);
     
     this.socket.onopen = (event) => {
-      console.log('Websocket Open', event);
+
+        console.log('Websocket Open', event);
+      
     };
 
     this.socket.onmessage = (event) => {

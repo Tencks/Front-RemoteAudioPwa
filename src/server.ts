@@ -7,12 +7,20 @@ import {
 import express from 'express';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as https from 'node:https';
+import * as fs from 'node:fs';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+
+const privateKey = fs.readFileSync(resolve(serverDistFolder, '../../../localhost+3-key.pem'), 'utf8');
+const certificate = fs.readFileSync(resolve(serverDistFolder, '../../../localhost+3.pem'), 'utf8');
+const credentials = { key: privateKey, cert: certificate };
+
+const httpsServer = https.createServer(credentials, app);
 
 /**
  * Example Express Rest API endpoints can be defined here.
@@ -54,9 +62,9 @@ app.use('/**', (req, res, next) => {
  * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
  */
 if (isMainModule(import.meta.url)) {
-  const port = process.env['PORT'] || 4000;
-  app.listen(port, () => {
-    console.log(`Node Express server listening on http://localhost:${port}`);
+  const port = process.env['PORT'] || 8000;
+  httpsServer.listen(port, () => {
+    console.log(`Node Express server En los 3 mil grandes Daos https://localhost:${port}`);
   });
 }
 

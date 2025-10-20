@@ -34,6 +34,9 @@ export class ConfigComponent implements OnInit{
   }
 
   loadDevices(){
+    if(!this.isBrowser){
+      return
+    }
     this.audioService.getDevices().subscribe({
       next: (audioDevices:AudioDevice[]) => {
         //convertimo de AudioDevice a DeviceFilter

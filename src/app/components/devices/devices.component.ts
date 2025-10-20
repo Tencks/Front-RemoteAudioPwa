@@ -23,6 +23,7 @@ export class DevicesComponent implements OnInit{
   loading = true;
 
     private isBrowser: boolean = false;
+    private Logs: boolean = false;
     
 
     constructor(
@@ -40,6 +41,10 @@ export class DevicesComponent implements OnInit{
 
 
     refresh(){
+      if(!this.isBrowser){
+      this.loading = false;
+      return
+    }
     this.audioService.getDevices().subscribe({
       next: (data) => {
         this.devices = data;
@@ -62,9 +67,11 @@ export class DevicesComponent implements OnInit{
               ...session,
               deviceID: device.id, //Identificador del dispositivo
             })));
-          console.log(this.sessions);
-          console.log(this.devicesOut);
-          console.log(this.devicesIn);
+            if(this.Logs === true){
+              console.log(this.sessions);
+              console.log(this.devicesOut);
+              console.log(this.devicesIn);
+            }
         }
         this.loading = false;
       },
