@@ -36,8 +36,12 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
   isConnected: boolean = false;
   private mediaSubscription!: Subscription;
   websocketUrl:string = '';
-  private Logs: boolean = false;
+  private Logs: boolean = true;
 
+  //variables para ProgressBar LocalStorage
+  private lastPosition: number = 0;
+  
+  
   constructor(
     private audioService: WinAudioService,
     private mediaWebsocketService: WinAudioWSService,
@@ -49,6 +53,8 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
     this.CurrentSong();
 
     if(isPlatformBrowser(this.platformId)){
+      this.loadProgressFromLocalStorage();
+
       const hostname = window.location.hostname;
         this.websocketUrl = hostname  === 'localhost' || hostname === '127.0.0.1'
           ? 'wss://localhost:5000' : `wss://${hostname}:5000`;
@@ -60,14 +66,50 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
         this.mediaSubscription = this.mediaWebsocketService.mediaInfo$.subscribe(info => {
           // Puedes volver a la zona de Angular si necesitas actualizar la UI
           this.ngZone.run(() => {
-            this.currentMediaInfo = info;
+            if(this.currentSong[0]){
+              if (info && info.title){
+
+              const isNewSong = this.currentSong[0].title !== info.title;
+              const statusChanged = this.currentSong[0].isPlaying !== info.isPlaying;
+
+              this.currentMediaInfo = info;
             this.isConnected = true; // Si recibimos info, estamos conectados
             this.currentSong = [info];
+            this.saveProgressLocalStorage(info);
+            if(this.currentSong[0].title !== ''){
+              this.mediaElementRef.nativeElement.play();
+            }
             if(this.Logs === true){
               console.log('Información de medios recibida:', info);
               console.log('websocket data: ' ,this.currentSong)
             }
+
+            if (isNewSong || statusChanged){
+              this.stopProgressTimer();
+              if(info.isPlaying === true){
+                this.startProgressTimer();
+              }
+            } else if(info.isPlaying === true && !this.progressInterval){
+              this.startProgressTimer();
+            } else if(info.isPlaying !== true){
+              this.stopProgressTimer();
+            }
+            if(this.currentSong[0].title !== ''){
+              this.mediaElementRef.nativeElement.play().catch(e => {
+                console.error('Error al reproducir la canción:', e);
+              });
+            } else {
+              this.mediaElementRef.nativeElement.pause();
+            }
             this.updateMediaSessionMetadata(info);
+            } else {
+              this.stopProgressTimer();
+              this.clearLocalStorage();
+              this.currentSong = []
+            }
+            }
+            
+            
           });
         });
       });
@@ -82,9 +124,7 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
     if(this.mediaUpdateSubscription){
       this.mediaUpdateSubscription.unsubscribe();
     }
-    if(this.progressInterval){
-      clearInterval(this.progressInterval);
-    }
+    this.stopProgressTimer();
 
     this.mediaWebsocketService.disconnect();
   
@@ -196,18 +236,6 @@ isPlaying: boolean = false;
     });
   }
 
-   // Función para ocultar "UwU" después de un tiempo
-  hideUwuSoon(): void {
-    // Limpiar cualquier timeout previo
-    if (this.hideTimeout) {
-      clearTimeout(this.hideTimeout);
-    }
-
-    // Configurar un timeout para ocultar "UwU" después de 1 segundo
-    this.hideTimeout = setTimeout(() => {
-      this.showUwu = false;
-    }, 2000); // 1000 ms = 1 segundo
-  }
 
   CurrentSong() {
     // this.audioService.MusicCurrent().subscribe({
@@ -228,6 +256,67 @@ isPlaying: boolean = false;
     //   }
     // });
   }
+
+private startProgressTimer(): void {
+  this.stopProgressTimer();
+  if(this.currentSong.length > 0 && this.currentSong[0].isPlaying){
+    this.progressInterval = setInterval(() => {
+      if (this.currentSong.length > 0) {
+       const song = this.currentSong[0];
+       const speed  = song.speed || 1;
+        if(song && song.position_seconds !== undefined && song.duration_seconds !== undefined){
+          if (song.position_seconds  < song.duration_seconds ){
+            song.position_seconds += speed;
+            this.saveProgressLocalStorage(song);
+           }else {
+            this.stopProgressTimer();
+           }
+        }
+      }
+    }, 1000);
+  }
+}
+
+private stopProgressTimer(): void {
+  if (this.progressInterval) {
+    clearInterval(this.progressInterval);
+    this.progressInterval = null;
+  }
+}
+
+private loadProgressFromLocalStorage(): void {
+  if(isPlatformBrowser(this.platformId)){
+    const storedMediaInfo = localStorage.getItem('lastMediaInfo');
+    if (storedMediaInfo) {
+      try {
+        const mediaInfo: MediaInfo = JSON.parse(storedMediaInfo);
+        if (mediaInfo && mediaInfo.title) {
+          this.currentSong = [mediaInfo];
+          this.lastPosition = mediaInfo.position_seconds ?? 0;
+
+          if(mediaInfo.isPlaying === true){
+            this.startProgressTimer();
+          }
+        }
+      } catch (error) {
+        console.error('Error al parsear el JSON de lastMediaInfo:', error);
+        this.clearLocalStorage();
+      }
+    }
+  }
+}
+
+private saveProgressLocalStorage(mediaInfo: MediaInfo): void {
+  if(isPlatformBrowser(this.platformId)){
+    localStorage.setItem('lastMediaInfo', JSON.stringify(mediaInfo));
+  }
+}
+
+private clearLocalStorage(): void {
+  if(isPlatformBrowser(this.platformId)){
+    localStorage.removeItem('lastMediaInfo');
+  }
+}
 
   formatTime(seconds: number | undefined): string {
     if (seconds === undefined || isNaN(seconds)) {

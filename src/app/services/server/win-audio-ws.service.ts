@@ -8,7 +8,7 @@ export class WinAudioWSService {
   private socket!: WebSocket;
   private mediaInfoSubject = new Subject<any>();
   public mediaInfo$ = this.mediaInfoSubject.asObservable();
-  private Logs: boolean = false;
+  private Logs: boolean = true;
 
   constructor() { }
 
@@ -30,6 +30,9 @@ export class WinAudioWSService {
       try {
         const data = JSON.parse(event.data);
         this.mediaInfoSubject.next(data);
+        if(this.Logs === true){
+          console.log('Websocket Message', data);
+        }
       } catch (error) {
         console.error('Error al parsear el websocket', error)
       }

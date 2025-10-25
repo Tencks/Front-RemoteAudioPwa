@@ -49,7 +49,7 @@ export class DevicesInComponent implements OnInit{
     }
     this.audioService.getDevices().subscribe({
       next: (data) => {
-        this.devices = data;
+        this.devices = data.devices;
         if (this.isBrowser) {
           let deviceFilter: any = {};
           try {
@@ -61,10 +61,10 @@ export class DevicesInComponent implements OnInit{
           }
 
           // Si no hay filtros, pasar todos los dispositivos sin filtrar
-          this.devicesOut = data.filter(device => device.type === 0 && (deviceFilter[device.id]?.enabled ?? true));
-          this.devicesIn = data.filter(device => device.type === 1 && (deviceFilter[device.id]?.enabled ?? true));
+          this.devicesOut = data.devices.filter(device => device.type === 0 && (deviceFilter[device.id]?.enabled ?? true));
+          this.devicesIn = data.devices.filter(device => device.type === 1 && (deviceFilter[device.id]?.enabled ?? true));
 
-          this.sessions = data.flatMap(device => 
+          this.sessions = data.devices.flatMap(device => 
             device.sessions.map(session =>({
               ...session,
               deviceID: device.id, //Identificador del dispositivo

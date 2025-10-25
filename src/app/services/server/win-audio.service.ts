@@ -1,15 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AudioDevice, MediaInfo } from '../../core/interfaces/AudioInterface';
+import { AudioDevice, DevicesResponse, MediaInfo } from '../../core/interfaces/AudioInterface';
 import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WinAudioService {
- private baseUrl: string;
-
+private baseUrl: string;
+private hostname = window.location.hostname.replace(/:\d+$/, ''); //Obtenemos solo la parte del hostname sin el puerto
 
   constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {
     //valor por defecto
@@ -26,8 +26,9 @@ export class WinAudioService {
     
    }
 
-  getDevices(): Observable<AudioDevice[]>{
-    return this.http.get<AudioDevice[]>(`${this.baseUrl}/devices`)
+  getDevices(): Observable<DevicesResponse>{
+    console.log(this.hostname);
+    return this.http.get<DevicesResponse>(`${this.baseUrl}/devices/${this.hostname}`)
   }
 
   setDeviceVolume(id: number, volume: number) {
@@ -79,7 +80,7 @@ export class WinAudioService {
   }
 
   MusicCurrent():Observable<MediaInfo[]> {
-    return this.http.get<MediaInfo[]>(`${this.baseUrl}/media/current`);
+    return this.http.get<MediaInfo[]>(`${this.baseUrl}/media/status/${this.hostname}`);
   }
 
 }

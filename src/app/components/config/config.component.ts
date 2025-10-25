@@ -1,7 +1,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AudioDevice, DeviceFilter } from '../../core/interfaces/AudioInterface';
+import { AudioDevice, DeviceFilter, DevicesResponse } from '../../core/interfaces/AudioInterface';
 import { WinAudioService } from '../../services/server/win-audio.service';
 
 @Component({
@@ -38,9 +38,10 @@ export class ConfigComponent implements OnInit{
       return
     }
     this.audioService.getDevices().subscribe({
-      next: (audioDevices:AudioDevice[]) => {
+      next: (response:DevicesResponse) => {
+        console.log(response);
         //convertimo de AudioDevice a DeviceFilter
-        const deviceFilters: DeviceFilter[] = audioDevices.map(device =>({
+        const deviceFilters: DeviceFilter[] = response.devices.map(device =>({
           id: device.id.toString(),
           name: device.name,
           type: device.type,

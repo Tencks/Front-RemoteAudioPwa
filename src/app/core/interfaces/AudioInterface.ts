@@ -6,6 +6,11 @@ export interface AudioSession {
     deviceID: number;
   }
   
+  export interface DevicesResponse {
+    message: string;
+    devices: AudioDevice[];
+  }
+
   export interface AudioDevice {
     id: number;
     name: string;
@@ -29,6 +34,7 @@ export interface MediaInfo {
     album?: string;
     duration_seconds?: number;
     position_seconds?: number;
+    speed:1;
     isPlaying?: boolean;
   
 }
