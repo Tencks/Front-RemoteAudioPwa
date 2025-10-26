@@ -9,17 +9,13 @@ import { isPlatformBrowser } from '@angular/common';
 })
 export class WinAudioService {
 private baseUrl: string;
-private hostname = window.location.hostname.replace(/:\d+$/, ''); //Obtenemos solo la parte del hostname sin el puerto
+private hostname: string = ''; //Obtenemos solo la parte del hostname sin el puerto
 
   constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {
-    //valor por defecto
-    // this.baseUrl = 'https://localhost:5000';
     this.baseUrl = '/api';
     //Ejecutamos solo si es en navegador
     if(isPlatformBrowser(this.platformId)){
-      const hostname = window.location.hostname;
-        // this.baseUrl = hostname  === 'localhost' || hostname === '127.0.0.1' 
-        //   ? 'https://localhost:5000' : `https//${hostname}:5000`;
+      this.hostname =window.location.hostname.replace(/:\d+$/, '')
         this.baseUrl = '/api';
     }
     
@@ -27,23 +23,24 @@ private hostname = window.location.hostname.replace(/:\d+$/, ''); //Obtenemos so
    }
 
   getDevices(): Observable<DevicesResponse>{
-    console.log(this.hostname);
-    return this.http.get<DevicesResponse>(`${this.baseUrl}/devices/${this.hostname}`)
+    // console.log(this.hostname);
+    return this.http.get<DevicesResponse>(`${this.baseUrl}/${this.hostname}/devices`)
   }
 
   setDeviceVolume(id: number, volume: number) {
-    return this.http.post(`${this.baseUrl}/device/${id}/volume`, { volume });
+    // console.log('volumen a setear',volume)
+    return this.http.post(`${this.baseUrl}/${this.hostname}/device/${id}/volume`, { volume });
   }
 
   toggleDeviceMute(id: number, mute: boolean) {
-    return this.http.post(`${this.baseUrl}/device/${id}/mute`, { mute });
+    return this.http.post(`${this.baseUrl}/${this.hostname}/device/${id}/mute`, { mute });
   }
 
   setSessionVolume(deviceId: number, sessionId: string, volume: number) {
     //Extraemos el sessionID
     const sessinIndex = sessionId.split('-')[1] || sessionId; //Fallback sui no hay '-' 
     console.log(sessinIndex);
-    const url = `${this.baseUrl}/session/${deviceId}/${sessinIndex}/volume`;
+    const url = `${this.baseUrl}/${this.hostname}/session/${deviceId}/${sessinIndex}/volume`;
      // Debug: Mostrar URL construida
     // console.log('=== DEBUG SERVICIO ===');
     // console.log('Session ID original:', sessionId);
@@ -57,7 +54,7 @@ private hostname = window.location.hostname.replace(/:\d+$/, ''); //Obtenemos so
   toggleSessionMute(deviceId: number, sessionId: string, mute: boolean) {
     //Extraemos el sessionID
     const sessionIndex = sessionId.split('-')[1] || sessionId; //Fallback si no hay '-' 
-    const url = `${this.baseUrl}/session/${deviceId}/${sessionIndex}/mute`;
+    const url = `${this.baseUrl}/${this.hostname}/session/${deviceId}/${sessionIndex}/mute`;
      // Debug: Mostrar URL construida
     // console.log('=== DEBUG TOGGLE MUTE SERVICIO ===');
     // console.log('Session ID original:', sessionId);
@@ -70,17 +67,17 @@ private hostname = window.location.hostname.replace(/:\d+$/, ''); //Obtenemos so
   }
 
   MusicPlayPause() {
-    return this.http.post(`${this.baseUrl}/media/playpause`, {});
+    return this.http.post(`${this.baseUrl}/${this.hostname}/media/playpause`, {});
   }
   MusicPrevious() {
-    return this.http.post(`${this.baseUrl}/media/prev`, {});
+    return this.http.post(`${this.baseUrl}/${this.hostname}/media/prev`, {});
   }
   MusicNext() {
-    return this.http.post(`${this.baseUrl}/media/next`, {});
+    return this.http.post(`${this.baseUrl}/${this.hostname}/media/next`, {});
   }
 
   MusicCurrent():Observable<MediaInfo[]> {
-    return this.http.get<MediaInfo[]>(`${this.baseUrl}/media/status/${this.hostname}`);
+    return this.http.get<MediaInfo[]>(`${this.baseUrl}/${this.hostname}/media/status/${this.hostname}`);
   }
 
 }

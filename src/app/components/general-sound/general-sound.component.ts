@@ -66,49 +66,48 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
         this.mediaSubscription = this.mediaWebsocketService.mediaInfo$.subscribe(info => {
           // Puedes volver a la zona de Angular si necesitas actualizar la UI
           this.ngZone.run(() => {
-            if(this.currentSong[0]){
-              if (info && info.title){
+            console.log('nno entra1')
+            if (info && info.title) { // Solo procesar si hay información válida
+              const isNewSong = this.currentSong.length === 0 || this.currentSong[0].title !== info.title;
+              const statusChanged = this.currentSong.length === 0 ;
+                  console.log('nueva song',isNewSong)
+                  this.currentMediaInfo = info;
+                this.isConnected = true; // Si recibimos info, estamos conectados
+                this.currentSong = [info];
+                this.saveProgressLocalStorage(info);
+                if(this.currentSong[0].title !== ''){
+                  this.mediaElementRef.nativeElement.play();
+                }
+                if(this.Logs === true){
+                  console.log('Información de medios recibida:', info);
+                  console.log('websocket data: ' ,this.currentSong)
+                }
+    
+                if (isNewSong || statusChanged){
+                  this.stopProgressTimer();
+                  if(info.isPlaying === true){
+                    this.startProgressTimer();
+                  }
+                } else if(info.isPlaying === true && !this.progressInterval){
+                  this.startProgressTimer();
+                } else if(info.isPlaying !== true){
+                  this.stopProgressTimer();
+                }
+                if(this.currentSong[0].title !== ''){
+                  this.mediaElementRef.nativeElement.play().catch(e => {
+                    console.error('Error al reproducir la canción:', e);
+                  });
+                } else {
+                  this.mediaElementRef.nativeElement.pause();
+                }
+                this.updateMediaSessionMetadata(info);
 
-              const isNewSong = this.currentSong[0].title !== info.title;
-              const statusChanged = this.currentSong[0].isPlaying !== info.isPlaying;
-
-              this.currentMediaInfo = info;
-            this.isConnected = true; // Si recibimos info, estamos conectados
-            this.currentSong = [info];
-            this.saveProgressLocalStorage(info);
-            if(this.currentSong[0].title !== ''){
-              this.mediaElementRef.nativeElement.play();
+              }else {
+                this.stopProgressTimer();
+                this.clearLocalStorage();
+                this.currentSong = [info];
+                console.log('else pasado,cargando currentSong ', this.currentSong)
             }
-            if(this.Logs === true){
-              console.log('Información de medios recibida:', info);
-              console.log('websocket data: ' ,this.currentSong)
-            }
-
-            if (isNewSong || statusChanged){
-              this.stopProgressTimer();
-              if(info.isPlaying === true){
-                this.startProgressTimer();
-              }
-            } else if(info.isPlaying === true && !this.progressInterval){
-              this.startProgressTimer();
-            } else if(info.isPlaying !== true){
-              this.stopProgressTimer();
-            }
-            if(this.currentSong[0].title !== ''){
-              this.mediaElementRef.nativeElement.play().catch(e => {
-                console.error('Error al reproducir la canción:', e);
-              });
-            } else {
-              this.mediaElementRef.nativeElement.pause();
-            }
-            this.updateMediaSessionMetadata(info);
-            } else {
-              this.stopProgressTimer();
-              this.clearLocalStorage();
-              this.currentSong = []
-            }
-            }
-            
             
           });
         });
@@ -116,10 +115,7 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
       this.setupMediaSessionHandlers();
     }
   }
-
-
   
-
   ngOnDestroy(): void {
     if(this.mediaUpdateSubscription){
       this.mediaUpdateSubscription.unsubscribe();
