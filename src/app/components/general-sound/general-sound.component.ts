@@ -2,7 +2,7 @@ import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID, NgZone, viewChild, V
 import { WinAudioService } from '../../services/server/win-audio.service';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MediaInfo } from '../../core/interfaces/AudioInterface';
+import { mediaInfo, MediaInfoData } from '../../core/interfaces/AudioInterface';
 import {  Subscription } from 'rxjs';
 import { WinAudioWSService } from '../../services/server/win-audio-ws.service';
 
@@ -28,10 +28,10 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
 
   showUwu: boolean = false; // Estado para mostrar u ocultar "UwU"
   private hideTimeout: any; // Variable para manejar el timeout
-  currentSong: MediaInfo[] = [];
+  currentSong: MediaInfoData[] = [];
   private mediaUpdateSubscription: Subscription | undefined;
   progressInterval: any; // Para almacenar el ID del intervalo de progreso
-
+  private serverId : string = '';
   currentMediaInfo: any | null = null;
   isConnected: boolean = false;
   private mediaSubscription!: Subscription;
@@ -61,36 +61,53 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
 
       // Mueve la conexión y suscripción del WebSocket fuera de la zona de Angular
       this.ngZone.runOutsideAngular(() => {
-        this.mediaWebsocketService.connect(this.websocketUrl);
+        this.mediaWebsocketService.connect();
 
         this.mediaSubscription = this.mediaWebsocketService.mediaInfo$.subscribe(info => {
           // Puedes volver a la zona de Angular si necesitas actualizar la UI
           this.ngZone.run(() => {
             console.log('nno entra1')
-            if (info && info.title) { // Solo procesar si hay información válida
-              const isNewSong = this.currentSong.length === 0 || this.currentSong[0].title !== info.title;
+            console.log('nno entra1')
+            // El 'info' ahora es un array de objetos { serverId, mediaInfo } o { serverId, devices }
+            const allServerInfo = info; // Renombrar para mayor claridad
+            let relevantMediaInfo: any = null;
+
+            if (allServerInfo && allServerInfo.length > 0) {
+              // Si this.serverId no está establecido, tomamos el primero y lo establecemos
+              if (!this.serverId) {
+                this.serverId = allServerInfo[0].serverId;
+              }
+              // Buscamos la información de medios para el serverId actual
+              const serverData = allServerInfo.find((data: any) => data.serverId === this.serverId);
+              if (serverData && serverData.title) {
+                relevantMediaInfo = serverData;
+              }
+            }
+
+            if (relevantMediaInfo && relevantMediaInfo.title) { // Solo procesar si hay información válida
+              const isNewSong = this.currentSong.length === 0 || this.currentSong[0].title !== relevantMediaInfo.title;
               const statusChanged = this.currentSong.length === 0 ;
                   console.log('nueva song',isNewSong)
-                  this.currentMediaInfo = info;
+                  this.currentMediaInfo = relevantMediaInfo;
                 this.isConnected = true; // Si recibimos info, estamos conectados
-                this.currentSong = [info];
-                this.saveProgressLocalStorage(info);
+                this.currentSong = [relevantMediaInfo];
+                this.saveProgressLocalStorage(relevantMediaInfo);
                 if(this.currentSong[0].title !== ''){
                   this.mediaElementRef.nativeElement.play();
                 }
                 if(this.Logs === true){
-                  console.log('Información de medios recibida:', info);
+                  console.log('Información de medios recibida:', relevantMediaInfo);
                   console.log('websocket data: ' ,this.currentSong)
                 }
     
                 if (isNewSong || statusChanged){
                   this.stopProgressTimer();
-                  if(info.isPlaying === true){
+                  if(relevantMediaInfo.isPlaying === true){
                     this.startProgressTimer();
                   }
-                } else if(info.isPlaying === true && !this.progressInterval){
+                } else if(relevantMediaInfo.isPlaying === true && !this.progressInterval){
                   this.startProgressTimer();
-                } else if(info.isPlaying !== true){
+                } else if(relevantMediaInfo.isPlaying !== true){
                   this.stopProgressTimer();
                 }
                 if(this.currentSong[0].title !== ''){
@@ -100,12 +117,13 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
                 } else {
                   this.mediaElementRef.nativeElement.pause();
                 }
-                this.updateMediaSessionMetadata(info);
+                this.updateMediaSessionMetadata(relevantMediaInfo);
 
               }else {
                 this.stopProgressTimer();
                 this.clearLocalStorage();
-                this.currentSong = [info];
+                this.currentSong = []; // Limpiar currentSong si no hay info relevante
+                this.serverId = ''; // Limpiar serverId
                 console.log('else pasado,cargando currentSong ', this.currentSong)
             }
             
@@ -149,7 +167,7 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
   }
 
   // Actualiza la metadata de la Media Session
-  private updateMediaSessionMetadata(mediaInfo: MediaInfo): void {
+  private updateMediaSessionMetadata(mediaInfo: MediaInfoData): void {
     if(isPlatformBrowser(this.platformId)){
       if ('mediaSession' in navigator && mediaInfo) {
         console.log('Media Session API Update disponible');
@@ -172,45 +190,47 @@ export class GeneralSoundComponent implements OnInit, OnDestroy {
 isPlaying: boolean = false;
 
   togglePlayPause() {
-    this.isPlaying = !this.isPlaying;
-    console.log(this.isPlaying ? 'Reproduciendo música' : 'Música pausada');
+    // this.isPlaying = !this.isPlaying;
+    // console.log(this.isPlaying ? 'Reproduciendo música' : 'Música pausada');
 
-    if (this.mediaElementRef && this.mediaElementRef.nativeElement) {
-      if (this.isPlaying) {
-        this.mediaElementRef.nativeElement.play().catch(e => console.error('Error al reproducir el elemento de audio:', e));
-      } else {
-        this.mediaElementRef.nativeElement.pause();
-      }
-    }
+    // if (this.mediaElementRef && this.mediaElementRef.nativeElement) {
+    //   if (this.isPlaying) {
+    //     this.mediaElementRef.nativeElement.play().catch(e => console.error('Error al reproducir el elemento de audio:', e));
+    //   } else {
+    //     this.mediaElementRef.nativeElement.pause();
+    //   }
+    // }
 
-    this.audioService.MusicPlayPause().subscribe({
+    const commandUse = this.currentMediaInfo?.isPlaying ? 'pause' : 'play';
+    console.log('Comando a usar:', commandUse);
+    this.audioService.sendCommand(this.serverId, commandUse ,{'payload':'play-pause'} ).subscribe({
       next: (response) => {
         console.log('Respuesta del servidor:', response);
-        this.CurrentSong(); // Actualizar la información de la canción después de play/pause
-
-        if ('mediaSession' in navigator) {
-          if (this.isPlaying) {
-            navigator.mediaSession.playbackState = 'playing';
-          } else {
-            navigator.mediaSession.playbackState = 'paused';
-          }
-        }
+        // this.isPlaying = !this.isPlaying; // Eliminado: el estado se actualiza vía WebSocket
+        // this.CurrentSong(); // Actualizar la información de la canción
+      
+        //  if ('mediaSession' in navigator) {
+        //   if (this.isPlaying) {
+        //     navigator.mediaSession.playbackState = 'playing';
+        //   } else {
+        //     navigator.mediaSession.playbackState = 'paused';
+        //   }
+        // }
 
       },
       error: (error) => {
         console.error('Error al reproducir/ pausar música:', error);
       }
     });
-    // Aquí puedes enviar una señal al backend para ejecutar la acción en Windows
+
   }
 
   previousTrack() {
     console.log('Pista anterior');
-    // Aquí puedes enviar una señal al backend para cambiar a la pista anterior
-    this.audioService.MusicPrevious().subscribe({
+    this.audioService.sendCommand(this.serverId, 'prev',{'payload':'anterior'} ).subscribe({
       next: (response) => {
         console.log('Respuesta del servidor:', response);
-        this.CurrentSong(); // Actualizar la información de la canción
+        // this.CurrentSong(); // Actualizar la información de la canción (ahora vía WebSocket)
       },
       error: (error) => {
         console.error('Error al reproducir/ pausar música:', error);
@@ -221,10 +241,10 @@ isPlaying: boolean = false;
   nextTrack() {
     console.log('Pista siguiente');
     // Aquí puedes enviar una señal al backend para cambiar a la pista siguiente
-    this.audioService.MusicNext().subscribe({
+    this.audioService.sendCommand(this.serverId, 'next',{'payload':'siguiente'} ).subscribe({
       next: (response) => {
         console.log('Respuesta del servidor:', response);
-        this.CurrentSong(); // Actualizar la información de la canción
+        // this.CurrentSong(); // Actualizar la información de la canción (ahora vía WebSocket)
       },
       error: (error) => {
         console.error('Error al reproducir/ pausar música:', error);
@@ -234,23 +254,7 @@ isPlaying: boolean = false;
 
 
   CurrentSong() {
-    // this.audioService.MusicCurrent().subscribe({
-    //   next: (response: any) => {
-    //     // console.log('Respuesta de MusicCurrent:', response);
-    //     this.currentSong = [response.mediaInfo];  // Mantengo tu lógica original
-    //     const newMediaInfo = [response.mediaInfo];  // Mantengo tu lógica original
-    //     if (this.currentSong.length || this.currentSong[0].title !== newMediaInfo[0].title) {  // Mantengo tu lógica original
-    //       this.currentSong = newMediaInfo;  // Mantengo tu lógica original
-
-    //     }
-    //   },
-    //   error: (error) => {
-    //     console.error('Error al obtener la canción actual:', error);
-    //     // En caso de error, limpiamos el intervalo para evitar fugas
-    //     clearInterval(this.progressInterval);
-    //     this.progressInterval = null;
-    //   }
-    // });
+    // Eliminado: la información de la canción se obtiene a través del WebSocket
   }
 
 private startProgressTimer(): void {
@@ -285,7 +289,7 @@ private loadProgressFromLocalStorage(): void {
     const storedMediaInfo = localStorage.getItem('lastMediaInfo');
     if (storedMediaInfo) {
       try {
-        const mediaInfo: MediaInfo = JSON.parse(storedMediaInfo);
+        const mediaInfo: MediaInfoData = JSON.parse(storedMediaInfo);
         if (mediaInfo && mediaInfo.title) {
           this.currentSong = [mediaInfo];
           this.lastPosition = mediaInfo.position_seconds ?? 0;
@@ -302,7 +306,7 @@ private loadProgressFromLocalStorage(): void {
   }
 }
 
-private saveProgressLocalStorage(mediaInfo: MediaInfo): void {
+private saveProgressLocalStorage(mediaInfo: MediaInfoData): void {
   if(isPlatformBrowser(this.platformId)){
     localStorage.setItem('lastMediaInfo', JSON.stringify(mediaInfo));
   }

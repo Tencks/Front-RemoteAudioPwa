@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AudioDevice, DevicesResponse, MediaInfo } from '../../core/interfaces/AudioInterface';
+import { AudioDevice, DevicesResponse, MediaInfoData, mediaInfo } from '../../core/interfaces/AudioInterface';
 import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
@@ -12,14 +12,19 @@ private baseUrl: string;
 private hostname: string = ''; //Obtenemos solo la parte del hostname sin el puerto
 
   constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {
-    this.baseUrl = '/api';
+    this.baseUrl = '';
     //Ejecutamos solo si es en navegador
     if(isPlatformBrowser(this.platformId)){
       this.hostname =window.location.hostname.replace(/:\d+$/, '')
-        this.baseUrl = '/api';
+        // this.baseUrl = '/api';
+        this.baseUrl = `https://${this.hostname}:5000`;
     }
-    
-    
+   }
+
+   sendCommand(serverId: string, action: string, playload?: any):Observable<any>{
+    let url = `${this.baseUrl}/commands/${serverId}/${action}`
+    console.log('url', url);
+    return this.http.post(url, playload);
    }
 
   getDevices(): Observable<DevicesResponse>{
@@ -76,8 +81,8 @@ private hostname: string = ''; //Obtenemos solo la parte del hostname sin el pue
     return this.http.post(`${this.baseUrl}/${this.hostname}/media/next`, {});
   }
 
-  MusicCurrent():Observable<MediaInfo[]> {
-    return this.http.get<MediaInfo[]>(`${this.baseUrl}/${this.hostname}/media/status/${this.hostname}`);
+  MusicCurrent():Observable<mediaInfo[]> {
+    return this.http.get<mediaInfo[]>(`${this.baseUrl}/${this.hostname}/media/status/${this.hostname}`);
   }
 
 }
